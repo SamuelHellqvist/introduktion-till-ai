@@ -2,8 +2,8 @@ import numpy as np
 
 #power function
 
-def power(a, b):
-    power = a**b
+def power(a: int, b: float) -> float:
+    power = b**a
     return power
 
 
@@ -13,6 +13,7 @@ def find_pi():
 
     radius = 0.5
 
+    #this gave me a good estimation
     N = 10000000
 
     #generating test numbers
@@ -24,7 +25,7 @@ def find_pi():
     #calculating the distance from the center
     xc, yc = 0.5, 0.5
 
-    distance = np.sqrt( power((x_numbers - xc), 2) + power((y_numbers - yc), 2))
+    distance = np.sqrt( power(2, (x_numbers - xc)) + power(2, (y_numbers - yc)))
    
     # filtering distances less than 0.5
     filteredDistances = distance[distance <= radius]
@@ -36,6 +37,8 @@ def find_pi():
     estimate = ratio * 4
 
     print(estimate)
+
+    
 
 find_pi()
 
