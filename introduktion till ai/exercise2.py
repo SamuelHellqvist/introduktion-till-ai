@@ -28,7 +28,7 @@ def find_pi():
     distance = np.sqrt( power(2, (x_numbers - xc)) + power(2, (y_numbers - yc)))
    
     # filtering distances less than 0.5
-    filteredDistances = distance[distance <= radius]
+    filteredDistances = distance[distance < radius]
 
     M = np.size(filteredDistances)
 
