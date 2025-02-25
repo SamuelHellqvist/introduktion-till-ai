@@ -1,0 +1,77 @@
+import numpy as np
+from sklearn.preprocessing import LabelEncoder
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+import matplotlib.pyplot as plt
+
+# Your original data (assuming these are your feature lists)
+subscription_periods = ["> 2 years", "< 1 year", ">2 years", "<1 year", ">2 years", "1-2 years", ">2 years", "1-2 years", ">2 years", "<1 year", ">2 years", "1-2 years", ">2 years", "1-2 years", "<1 year", ">2 years", "1-2 years", ">2 years", "1-2 years", ">2 years"]
+monthly_usage = ["Low", "Low", "Medium", "Low", "Low", "Low", "Medium", "Low", "Low", "Low", "High", "Low", "High", "Low", "Low", "Medium", "Low", "High", "Low", "Medium"]
+support_calls = ["No", "Yes", "No", "No", "No", "Yes", "No", "No", "No", "Yes", "No", "No", "No", "No", "Yes", "Yes", "No", "No", "Yes", "No"]
+price_tier = ["Basic", "Standard", "Premium", "Basic", "Standard", "Basic", "Premium", "Standard", "Standard", "Basic", "Premium", "Basic", "Premium", "Standard", "Basic", "Standard", "Standard", "Premium", "Basic", "Standard"]
+subscription_decision = ["Active", "Canceled", "Active", "Canceled", "Upgraded", "Canceled", "Active", "Active", "Upgraded", "Canceled", "Active", "Canceled", "Active", "Active", "Canceled", "Upgraded", "Active", "Active", "Canceled", "Active"]
+
+# Combine features into a single list of lists
+X = list(zip(subscription_periods, monthly_usage, support_calls, price_tier))
+y = subscription_decision
+
+# Initialize LabelEncoders
+le_features = [LabelEncoder() for _ in range(4)]
+le_target = LabelEncoder()
+
+# Fit and transform features
+X_encoded = np.array([le.fit_transform(feature) for le, feature in zip(le_features, zip(*X))]).T
+
+# Fit and transform target
+y_encoded = le_target.fit_transform(y)
+
+# Train the decision tree
+clf = DecisionTreeClassifier(random_state=42, criterion="entropy")
+clf.fit(X_encoded, y_encoded)
+
+# Prepare feature names and class names for visualization
+feature_names = ['Subscription Period', 'Monthly Usage', 'Support Calls', 'Price Tier']
+class_names = le_target.classes_
+
+# Create a mapping of encoded values back to original labels
+feature_mappings = [
+    {i: label for i, label in enumerate(le.classes_)}
+    for le in le_features
+]
+
+# Function to convert node labels back to original text
+def node_to_string(tree, node_id, feature):
+    if tree.feature[node_id] != feature:
+        return None
+    threshold = tree.threshold[node_id]
+    for encoded_val, original_label in feature_mappings[feature].items():
+        if encoded_val == int(threshold):
+            return f"{feature_names[feature]} = {original_label}"
+    return None
+
+# Plotting the tree
+plt.figure(figsize=(20,10))
+plot_tree(clf,
+          feature_names=feature_names,
+          class_names=class_names,
+          filled=True,
+          rounded=True,
+          fontsize=10)
+
+# Adding text annotations to nodes
+for i in range(clf.tree_.node_count):
+    for feature in range(4):
+        node_text = node_to_string(clf.tree_, i, feature)
+        if node_text:
+            plt.annotate(node_text,
+                         xy=(clf.tree_.feature[i], clf.tree_.threshold[i]),
+                         xytext=(0, 5),
+                         textcoords="offset points",
+                         ha='center', va='bottom',
+                         bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5),
+                         arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
+
+plt.title("Decision Tree Visualization", fontsize=20)
+plt.tight_layout()
+plt.savefig("decision_tree_visualization.png", dpi=300, bbox_inches='tight')
+plt.show()
+
